@@ -4,6 +4,7 @@ const config = require("../config.json");
 const presenceList = require("./presences");
 
 let presences = [];
+const warned = [];
 
 client.on("ready", () => {
   console.log(`Logged in as ${client.user.tag}`);
@@ -15,6 +16,33 @@ client.on("ready", () => {
       type: "WATCHING",
     },
   });
+});
+
+client.on("presenceUpdate", async (_, newPresence) => {
+  try {
+    if (!config.update) return;
+
+    for (const presence of newPresence.activities) {
+      if (presenceList[presence.name]) {
+        if (warned.includes(newPresence.userID)) break;
+
+        warned.push(newPresence.userID);
+
+        console.log("bad");
+        client.users.cache
+          .get(newPresence.userID)
+          .send(
+            `${
+              presenceList[presence.name][
+                Math.floor(Math.random() * presenceList[presence.name].length)
+              ]
+            }`
+          );
+      }
+    }
+  } catch (e) {
+    console.log(e);
+  }
 });
 
 client.on("message", async (message) => {
