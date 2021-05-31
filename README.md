@@ -1,4 +1,5 @@
 # insulter
 
-# contributing
-if you want to add more statuses/insults, make a pull request and add it to the object in `src/presences.js`
+## There is a life version of this discord bot running, you can invite it here:
+
+https://discord.com/oauth2/authorize?client_id=838209664897253386&permissions=0&scope=bot

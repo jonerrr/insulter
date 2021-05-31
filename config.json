@@ -1,4 +1,6 @@
 {
   "token": "",
-  "update": false
+  "channel": "",
+  "prefix": "!",
+  "update": true
 }

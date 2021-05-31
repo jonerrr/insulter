@@ -1,10 +1,12 @@
 const Discord = require("discord.js");
 const client = new Discord.Client();
+const disbut = require("discord-buttons")(client);
 const config = require("../config.json");
-const presenceList = require("./presences");
+const update = require("./updates");
+let presenceList = require("../presences.json");
 
 let presences = [];
-const warned = [];
+const memes = {};
 
 client.on("ready", () => {
   console.log(`Logged in as ${client.user.tag}`);
@@ -12,23 +14,41 @@ client.on("ready", () => {
   client.user.setPresence({
     status: "idle",
     activity: {
-      name: `ur mom`,
+      name: `your status`,
       type: "WATCHING",
     },
   });
 });
 
-client.on("presenceUpdate", async (_, newPresence) => {
+const aboutButton = new disbut.MessageButton()
+  .setStyle("blurple")
+  .setLabel("About Me")
+  .setID("about");
+
+const stopButton = new disbut.MessageButton()
+  .setStyle("red")
+  .setLabel("Stop Insulting")
+  .setID("stop");
+
+const startButton = new disbut.MessageButton()
+  .setStyle("green")
+  .setLabel("Start Insulting")
+  .setID("start");
+
+client.on("presenceUpdate", (_, newPresence) => {
   try {
+    presenceList = update.getPresences();
+
     if (!config.update) return;
 
     for (const presence of newPresence.activities) {
       if (presenceList[presence.name]) {
-        if (warned.includes(newPresence.userID)) break;
+        if (!update.checkUser(newPresence.userID)) break;
 
-        warned.push(newPresence.userID);
+        update.updateUser(newPresence.userID, true);
 
-        console.log("bad");
+        console.log("guy");
+
         client.users.cache
           .get(newPresence.userID)
           .send(
@@ -36,7 +56,10 @@ client.on("presenceUpdate", async (_, newPresence) => {
               presenceList[presence.name][
                 Math.floor(Math.random() * presenceList[presence.name].length)
               ]
-            }`
+            }`,
+            {
+              buttons: [aboutButton, startButton, stopButton],
+            }
           );
       }
     }
@@ -48,8 +71,43 @@ client.on("presenceUpdate", async (_, newPresence) => {
 client.on("message", async (message) => {
   try {
     if (message.author.bot) return;
+    if (!message.content.startsWith(config.prefix)) return;
 
-    if (message.content.includes("!insult")) {
+    const commandBody = message.content.slice(config.prefix.length);
+    const args = commandBody.split(" ");
+    const command = args.shift();
+
+    if (command.toLowerCase() === "suggest") {
+      const channel = client.channels.cache.get(config.channel);
+
+      const args2 = args.join(" ").split(", ");
+
+      if (args2.length !== 2)
+        return message.channel.send(
+          "Invalid Arguments. Usage: `!suggest game name, https://linktomemeorgif.com/ or a phrase`"
+        );
+
+      memes[args2[1]] = args2[0];
+
+      let approveButton = new disbut.MessageButton()
+        .setStyle("green")
+        .setLabel("Approve")
+        .setID(args2[1]);
+
+      await channel.send(
+        new Discord.MessageEmbed()
+          .setTitle("New Suggestion")
+          .addField(args2[0], args2[1])
+      );
+
+      await channel.send("Approve this meme?", {
+        buttons: [approveButton],
+      });
+
+      await message.channel.send("Meme Submitted");
+    }
+
+    if (command.toLowerCase() === "insult") {
       const members = await message.guild.members.fetch();
 
       members.forEach((member) => {
@@ -80,6 +138,34 @@ client.on("message", async (message) => {
     console.log(e);
     message.channel.send("error");
   }
+});
+
+client.on("clickButton", async (button) => {
+  if (button.id === "stop") {
+    update.updateUser(button.clicker.user.id, false);
+
+    return await button.reply.send(
+      `I will no longer insult you, you can enable the insults again by clicking the start button.`
+    );
+  }
+
+  if (button.id === "start") {
+    update.updateUser(button.clicker.user.id, true);
+
+    return await button.reply.send(
+      `I will start insulting, you can disable the insults by clicking the stop button.`
+    );
+  }
+
+  if (button.id === "about") {
+    return await button.reply.send(
+      "I am a bot that will insult you based off of your status, you can insult an entire server by running !insult in a mutual server. You can add memes and games to react to by running `!suggest <game name>, <link of a meme or phrase>`\n You can invite me here: https://discord.com/oauth2/authorize?client_id=838209664897253386&permissions=0&scope=bot"
+    );
+  }
+
+  update.addPresence(memes[button.id], button.id);
+
+  return await button.reply.send(`Approved`);
 });
 
 client.login(config.token);
