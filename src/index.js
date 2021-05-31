@@ -6,6 +6,13 @@ const update = require("./updates");
 let presenceList = require("../presences.json");
 
 let presences = [];
+const phrases = [
+  "shut the fuck up",
+  "wrong you're retard",
+  "please stop talking",
+  "i dont care",
+  "who asked +ratio",
+];
 const memes = {};
 
 client.on("ready", () => {
@@ -34,6 +41,23 @@ const startButton = new disbut.MessageButton()
   .setStyle("green")
   .setLabel("Start Insulting")
   .setID("start");
+
+const disableButton = new disbut.MessageButton()
+  .setStyle("blurple")
+  .setLabel("Approved")
+  .setDisabled()
+  .setID("ok");
+
+const denyButton = new disbut.MessageButton()
+  .setStyle("red")
+  .setLabel("Deny")
+  .setID("deny");
+
+const denyButtonDisabled = new disbut.MessageButton()
+  .setStyle("blurple")
+  .setLabel("Denied")
+  .setDisabled()
+  .setID("deny");
 
 client.on("presenceUpdate", (_, newPresence) => {
   try {
@@ -71,6 +95,14 @@ client.on("presenceUpdate", (_, newPresence) => {
 client.on("message", async (message) => {
   try {
     if (message.author.bot) return;
+
+    const number = Math.floor(Math.random() * 700);
+
+    if (number === 69)
+      await message.channel.send(
+        phrases[Math.floor(Math.random() * phrases.length)]
+      );
+
     if (!message.content.startsWith(config.prefix)) return;
 
     const commandBody = message.content.slice(config.prefix.length);
@@ -124,7 +156,12 @@ client.on("message", async (message) => {
 
       if (args2.length !== 2)
         return message.channel.send(
-          "Invalid Arguments. Usage: `!suggest game name (Case sensitive), https://linktomemeorgif.com/ or a phrase`"
+          "Invalid Arguments. Usage: `;suggest game name (Case sensitive), https://linktomemeorgif.com/ or a phrase`"
+        );
+
+      if (args[1].length >= 100)
+        message.channel.send(
+          "Please make sure the meme is less than 100 characters"
         );
 
       memes[args2[1]] = args2[0];
@@ -141,7 +178,7 @@ client.on("message", async (message) => {
       );
 
       await channel.send("Approve this meme?", {
-        buttons: [approveButton],
+        buttons: [approveButton, denyButton],
       });
 
       await message.channel.send("Meme Submitted");
@@ -216,7 +253,7 @@ client.on("message", async (message) => {
     }
   } catch (e) {
     console.log(e);
-    message.channel.send("error");
+    message.channel.send("shut up");
   }
 });
 
@@ -243,9 +280,19 @@ client.on("clickButton", async (button) => {
     );
   }
 
+  if (button.id === "deny") {
+    return await button.message.edit("Meme Denied", {
+      buttons: [disableButton, denyButtonDisabled],
+    });
+  }
+
   update.addPresence(memes[button.id], button.id);
 
-  return await button.reply.send(`Approved`);
+  button.message.edit("Meme Approved", {
+    buttons: [disableButton, denyButtonDisabled],
+  });
+
+  return button.defer();
 });
 
 client.login(config.token);
