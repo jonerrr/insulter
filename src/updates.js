@@ -1,5 +1,21 @@
 const fs = require("fs");
 
+const checkServer = (id) => {
+  const data = JSON.parse(fs.readFileSync("./servers.json"));
+
+  if (typeof data[id] === "boolean" && !data[id]) return false;
+
+  return true;
+};
+
+const updateServer = (id, update) => {
+  const data = JSON.parse(fs.readFileSync("./servers.json"));
+
+  data[id] = update;
+
+  fs.writeFileSync("./servers.json", JSON.stringify(data));
+};
+
 const updateUser = (id, update) => {
   const data = JSON.parse(fs.readFileSync("./users.json"));
 
@@ -34,4 +50,11 @@ const getPresences = () => {
   return data;
 };
 
-module.exports = { checkUser, updateUser, addPresence, getPresences };
+module.exports = {
+  checkUser,
+  updateUser,
+  addPresence,
+  getPresences,
+  checkServer,
+  updateServer,
+};

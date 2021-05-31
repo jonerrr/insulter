@@ -77,6 +77,46 @@ client.on("message", async (message) => {
     const args = commandBody.split(" ");
     const command = args.shift();
 
+    if (command.toLowerCase() === "help") {
+      return message.channel.send(
+        new Discord.MessageEmbed().setTitle("Help").addFields(
+          { name: ";insultr", value: "Insult a random person" },
+          {
+            name: ";suggest `<game (Case sensitive)>`,` <meme or text>`",
+            value: "Suggest an insult",
+          },
+          {
+            name: ";insult",
+            value: "(Admin Only) Insult everyone whose status applies",
+          },
+          {
+            name: ";stop",
+            value: "(Admin Only) Disable insult commands",
+          },
+          {
+            name: ";start",
+            value: "(Admin Only) Enable insult commands",
+          }
+        )
+      );
+    }
+
+    if (
+      command.toLowerCase() === "stop" &&
+      message.member.hasPermission("ADMINISTRATOR")
+    ) {
+      update.updateServer(message.guild.id, false);
+      message.channel.send("Insult commands disabled in this server");
+    }
+
+    if (
+      command.toLowerCase() === "start" &&
+      message.member.hasPermission("ADMINISTRATOR")
+    ) {
+      update.updateServer(message.guild.id, true);
+      message.channel.send("Insult commands enabled in this server");
+    }
+
     if (command.toLowerCase() === "suggest") {
       const channel = client.channels.cache.get(config.channel);
 
@@ -84,7 +124,7 @@ client.on("message", async (message) => {
 
       if (args2.length !== 2)
         return message.channel.send(
-          "Invalid Arguments. Usage: `!suggest game name, https://linktomemeorgif.com/ or a phrase`"
+          "Invalid Arguments. Usage: `!suggest game name (Case sensitive), https://linktomemeorgif.com/ or a phrase`"
         );
 
       memes[args2[1]] = args2[0];
@@ -107,7 +147,47 @@ client.on("message", async (message) => {
       await message.channel.send("Meme Submitted");
     }
 
-    if (command.toLowerCase() === "insult") {
+    if (
+      command.toLowerCase() === "insultr" &&
+      update.checkServer(message.guild.id)
+    ) {
+      const members = await message.guild.members.fetch();
+
+      members.forEach((member) => {
+        for (const activity of member.presence.activities) {
+          const custom = activity.type === "CUSTOM_STATUS";
+
+          presences.push({
+            status: custom ? activity.state : activity.name,
+            id: member.user.id,
+          });
+        }
+      });
+
+      const messages = [];
+
+      for (const presence of presences) {
+        if (presenceList[presence.status]) {
+          messages.push(
+            `<@${presence.id}>, ${
+              presenceList[presence.status][
+                Math.floor(Math.random() * presenceList[presence.status].length)
+              ]
+            }`
+          );
+        }
+      }
+      message.channel.send(
+        messages[Math.floor(Math.random() * messages.length)]
+      );
+      presences = [];
+    }
+
+    if (
+      command.toLowerCase() === "insult" &&
+      update.checkServer(message.guild.id) &&
+      message.member.hasPermission("ADMINISTRATOR")
+    ) {
       const members = await message.guild.members.fetch();
 
       members.forEach((member) => {
@@ -159,7 +239,7 @@ client.on("clickButton", async (button) => {
 
   if (button.id === "about") {
     return await button.reply.send(
-      "I am a bot that will insult you based off of your status, you can insult an entire server by running !insult in a mutual server. You can add memes and games to react to by running `!suggest <game name>, <link of a meme or phrase>`\n You can invite me here: https://discord.com/oauth2/authorize?client_id=838209664897253386&permissions=0&scope=bot"
+      "I am a bot that will insult you based off of your status, you can view my commands by running `;help` in a mutual server. \n You can invite me here: https://discord.com/oauth2/authorize?client_id=838209664897253386&permissions=0&scope=bot"
     );
   }
 
