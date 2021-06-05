@@ -19,7 +19,7 @@ const updateServer = (id, update) => {
 const updateUser = (id, update) => {
   const data = JSON.parse(fs.readFileSync("./users.json"));
 
-  data[id] = [update, Date.now() + 1800000];
+  data[id] = [update, Date.now() + 3600000];
 
   fs.writeFileSync("./users.json", JSON.stringify(data));
 };

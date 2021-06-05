@@ -5,6 +5,8 @@ const config = require("../config.json");
 const update = require("./updates");
 let presenceList = require("../presences.json");
 
+process.title = "Insulter";
+
 let presences = [];
 const phrases = [
   "shut the fuck up",
@@ -14,18 +16,6 @@ const phrases = [
   "who asked +ratio",
 ];
 const memes = {};
-
-client.on("ready", () => {
-  console.log(`Logged in as ${client.user.tag}`);
-  client.user.setStatus("idle");
-  client.user.setPresence({
-    status: "idle",
-    activity: {
-      name: `your status`,
-      type: "WATCHING",
-    },
-  });
-});
 
 const aboutButton = new disbut.MessageButton()
   .setStyle("blurple")
@@ -59,6 +49,18 @@ const denyButtonDisabled = new disbut.MessageButton()
   .setDisabled()
   .setID("deny");
 
+client.on("ready", () => {
+  console.log(`Logged in as ${client.user.tag}`);
+  client.user.setStatus("idle");
+  client.user.setPresence({
+    status: "idle",
+    activity: {
+      name: `your status`,
+      type: "WATCHING",
+    },
+  });
+});
+
 client.on("presenceUpdate", (_, newPresence) => {
   try {
     presenceList = update.getPresences();
@@ -71,7 +73,9 @@ client.on("presenceUpdate", (_, newPresence) => {
 
         update.updateUser(newPresence.userID, true);
 
-        console.log("guy");
+        console.log(
+          `${new Date(Date.now()).toLocaleString()} ${newPresence.user.tag}`
+        );
 
         client.users.cache
           .get(newPresence.userID)
@@ -88,7 +92,7 @@ client.on("presenceUpdate", (_, newPresence) => {
       }
     }
   } catch (e) {
-    console.log(e);
+    console.log("error");
   }
 });
 
@@ -111,25 +115,36 @@ client.on("message", async (message) => {
 
     if (command.toLowerCase() === "help") {
       return message.channel.send(
-        new Discord.MessageEmbed().setTitle("Help").addFields(
-          { name: ";insultr", value: "Insult a random person" },
-          {
-            name: ";suggest `<game (Case sensitive)>`,` <meme or text>`",
-            value: "Suggest an insult",
-          },
-          {
-            name: ";insult",
-            value: "(Admin Only) Insult everyone whose status applies",
-          },
-          {
-            name: ";stop",
-            value: "(Admin Only) Disable insult commands",
-          },
-          {
-            name: ";start",
-            value: "(Admin Only) Enable insult commands",
-          }
-        )
+        new Discord.MessageEmbed()
+          .setTitle("Help")
+          .setDescription(
+            `**Servers**: ${
+              client.guilds.cache.size
+            } \n **Commands**: ${update.checkServer(
+              message.guild.id
+            )} \n [Invite](https://discord.com/oauth2/authorize?client_id=${
+              client.user.id
+            }&permissions=0&scope=bot)`
+          )
+          .addFields(
+            { name: ";insultr", value: "Insult a random person" },
+            {
+              name: ";suggest `<Game name (case sensitive)>`, `<Meme URL or Message>`",
+              value: "Suggest an insult",
+            },
+            {
+              name: ";insult",
+              value: "*Admin Only* | Insult everyone whose status applies",
+            },
+            {
+              name: ";stop",
+              value: "*Admin Only* | Disable insult commands",
+            },
+            {
+              name: ";start",
+              value: "*Admin Only* | Enable insult commands",
+            }
+          )
       );
     }
 
@@ -159,10 +174,7 @@ client.on("message", async (message) => {
           "Invalid Arguments. Usage: `;suggest game name (Case sensitive), https://linktomemeorgif.com/ or a phrase`"
         );
 
-      if (args[1].length >= 100)
-        message.channel.send(
-          "Please make sure the meme is less than 100 characters"
-        );
+      if (args[1].length > 100) message.channel.send("meme denied (its trash)");
 
       memes[args2[1]] = args2[0];
 
@@ -222,8 +234,7 @@ client.on("message", async (message) => {
 
     if (
       command.toLowerCase() === "insult" &&
-      update.checkServer(message.guild.id) &&
-      message.member.hasPermission("ADMINISTRATOR")
+      update.checkServer(message.guild.id)
     ) {
       const members = await message.guild.members.fetch();
 
