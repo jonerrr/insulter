@@ -172,41 +172,54 @@ client.on("message", async (message) => {
   const command = args.shift();
 
   if (command === "submit" && args.length > 1) {
-    const args2 = args.join(" ").split("; ");
+    try {
+      const args2 = args.join(" ").split("; ");
 
-    // if (!args[1].match(urlRegexSafe()))
-    //   return message.channel.send({
-    //     embed: new Discord.MessageEmbed()
-    //       .setTitle("Error")
-    //       .setDescription("Invalid URL Provided."),
-    //   });
+      // if (!args[1].match(urlRegexSafe()))
+      //   return message.channel.send({
+      //     embed: new Discord.MessageEmbed()
+      //       .setTitle("Error")
+      //       .setDescription("Invalid URL Provided."),
+      //   });
 
-    if (!(await presences.verifyPresence(args2[0], args2[1])))
-      return message.channel.send({
+      if (!(await presences.verifyPresence(args2[0], args2[1])))
+        return message.channel.send({
+          embed: new Discord.MessageEmbed()
+            .setTitle("Error")
+            .setDescription(
+              "This game has not been detected by the bot or this meme has already been submitted.\nIf this game exists, it will automatically be added to the presence database when you play it."
+            ),
+        });
+
+      message.channel.send({
         embed: new Discord.MessageEmbed()
-          .setTitle("Error")
-          .setDescription(
-            "This game has not been detected by the bot or this meme has already been submitted.\nIf this game exists, it will automatically be added to the presence database when you play it."
-          ),
+          .setTitle("Submit Meme?")
+          .setDescription(`**Game**: ${args2[0]}`)
+          .setImage(args2[1]),
+
+        components: [buttons.confirm(message.author.id)],
       });
 
-    message.channel.send({
-      embed: new Discord.MessageEmbed()
-        .setTitle("Submit Meme?")
-        .setDescription(`**Game**: ${args2[0]}`)
-        .setImage(args2[1]),
+      cooldown.submit.add(message.author.id);
 
-      components: [buttons.confirm(message.author.id)],
-    });
-
-    cooldown.submit.add(message.author.id);
-
-    setTimeout(() => {
-      cooldown.submit.delete(message.author.id);
-    }, 5000);
+      setTimeout(() => {
+        cooldown.submit.delete(message.author.id);
+      }, 5000);
+    } catch (e) {
+      console.log(e);
+      message.channel.send({
+        embed: new Discord.MessageEmbed()
+          .setTitle("Error")
+          .setDescription("```" + e + "```"),
+      });
+    }
   }
 
-  if (command === "ping" && message.member.permissions.has("MANAGE_GUILD"))
+  if (
+    command === "ping" &&
+    (message.member.permissions.has("MANAGE_GUILD") ||
+      message.author.id === "781599562388471819")
+  )
     message.channel.send({
       embed: new Discord.MessageEmbed()
         .setTitle("Success")
@@ -215,7 +228,11 @@ client.on("message", async (message) => {
         ),
     });
 
-  if (command === "profane" && message.member.permissions.has("MANAGE_GUILD"))
+  if (
+    command === "profane" &&
+    (message.member.permissions.has("MANAGE_GUILD") ||
+      message.author.id === "781599562388471819")
+  )
     message.channel.send({
       embed: new Discord.MessageEmbed()
         .setTitle("Success")
