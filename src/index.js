@@ -186,7 +186,7 @@ client.on("message", async (message) => {
         embed: new Discord.MessageEmbed()
           .setTitle("Error")
           .setDescription(
-            "This game has not been detected by the bot or this meme has already been submitted.\nIf this game exists, it will automatically be detected if you start playing it."
+            "This game has not been detected by the bot or this meme has already been submitted.\nIf this game exists, it will automatically be added to the presence database when you play it."
           ),
       });
 
@@ -243,15 +243,12 @@ client.on("message", async (message) => {
           },
           {
             name: config.prefix + "submit `<Game>`; `<Meme URL>`",
-            value:
-              "Suggest an insult, for more information on submitting memes, run " +
-              config.prefix +
-              "`info`",
+            value: "Suggest an insult",
           },
-          {
-            name: config.prefix + "info",
-            value: "More information about this bot",
-          },
+          // {
+          //   name: config.prefix + "info",
+          //   value: "More information about this bot",
+          // },
           {
             name: "\u200B",
             value: "\u200B",
@@ -264,11 +261,11 @@ client.on("message", async (message) => {
           //   name: "\u200B",
           //   value: "\u200B",
           // },
-          {
-            name: config.prefix + "insult",
-            value:
-              "Insult as many people as possible (may cause spam in huge servers)",
-          },
+          // {
+          //   name: config.prefix + "insult",
+          //   value:
+          //     "Insult as many people as possible (may cause spam in huge servers)",
+          // },
           {
             name: config.prefix + "ping",
             value: "Enable/Disable if users will be pinged when insulted",
