@@ -1,6 +1,8 @@
 {
+  "dev": false,
   "token": "",
+  "devToken": "",
   "channel": "",
-  "prefix": "!",
-  "update": true
+  "prefix": ".",
+  "uri": ""
 }

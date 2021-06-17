@@ -10,7 +10,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "chalk": "^4.1.1",
     "discord-buttons": "^2.4.1",
-    "discord.js": "^12.5.3"
+    "discord.js": "^13.0.0-dev.c6aeebb18d6b969f7c8bdb1b719883d4384dd03e",
+    "mongoose": "^5.12.13",
+    "nanoid": "^3.1.23",
+    "url-regex-safe": "^2.0.2"
   }
 }
