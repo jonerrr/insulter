@@ -189,7 +189,7 @@ client.on("message", async (message) => {
   misc(message, client.user.id);
 
   if (!message.content.startsWith(config.prefix)) return;
-  3;
+
   const commandBody = message.content.slice(config.prefix.length).toLowerCase();
   const args = commandBody.split(" ");
   const command = args.shift();
@@ -212,6 +212,13 @@ client.on("message", async (message) => {
             .setDescription(
               "This game has not been detected by the bot or this meme has already been submitted.\nIf this game exists, it will automatically be added to the presence database when you play it."
             ),
+        });
+
+      if (cooldown.submit.has(message.author.id))
+        return message.channel.send({
+          embed: new Discord.MessageEmbed()
+            .setTitle("Error")
+            .setDescription("You are on cooldown."),
         });
 
       message.channel.send({
@@ -273,57 +280,67 @@ client.on("message", async (message) => {
         ),
     });
 
-  if (command === "insultr" || command === "ir")
+  if (
+    command === "insultr" ||
+    (command === "ir" && !cooldown.insultRandom.has(message.author.id))
+  )
     return await presences.getReply(message);
 
   if (command === "insult") presences.getReply(message, true);
 
   if (command === "help") {
+    const helpEmbed = new Discord.MessageEmbed()
+      .setTitle("Help")
+      .setDescription(
+        `**Servers**: ${client.guilds.cache.size}\n[Invite](https://discord.com/oauth2/authorize?client_id=${client.user.id}&permissions=0&scope=bot)\n\n=====Commands=====`
+      )
+      .addFields(
+        {
+          name: `${config.prefix}ir || ${config.prefix}insultr`,
+          value: "Insult a random person",
+        },
+        {
+          name: config.prefix + "submit `<Game>`; `<Meme URL>`",
+          value: "Suggest an insult",
+        },
+        // {
+        //   name: config.prefix + "info",
+        //   value: "More information about this bot",
+        // },
+        {
+          name: "\u200B",
+          value: "\u200B",
+        },
+        {
+          name: "Admin Only ",
+          value: "These commands can only be ran by server administrators",
+        },
+        // {
+        //   name: "\u200B",
+        //   value: "\u200B",
+        // },
+        // {
+        //   name: config.prefix + "insult",
+        //   value:
+        //     "Insult as many people as possible (may cause spam in huge servers)",
+        // },
+        {
+          name: config.prefix + "ping",
+          value: "Enable/Disable if users will be pinged when insulted",
+        },
+        {
+          name: config.prefix + "profane",
+          value: "Enable/Disable if bot will post profane memes",
+        }
+      );
+    if (message.author.id === "781599562388471819")
+      helpEmbed.addField(
+        `${config.prefix}dm`,
+        "Enable/Disable if bot will DM people on presence change with insults"
+      );
+
     return message.channel.send({
-      embed: new Discord.MessageEmbed()
-        .setTitle("Help")
-        .setDescription(
-          `**Servers**: ${client.guilds.cache.size}\n[Invite](https://discord.com/oauth2/authorize?client_id=${client.user.id}&permissions=0&scope=bot)\n\n=====Commands=====`
-        )
-        .addFields(
-          {
-            name: `${config.prefix}ir || ${config.prefix}insultr`,
-            value: "Insult a random person",
-          },
-          {
-            name: config.prefix + "submit `<Game>`; `<Meme URL>`",
-            value: "Suggest an insult",
-          },
-          // {
-          //   name: config.prefix + "info",
-          //   value: "More information about this bot",
-          // },
-          {
-            name: "\u200B",
-            value: "\u200B",
-          },
-          {
-            name: "Admin Only ",
-            value: "These commands can only be ran by server administrators",
-          },
-          // {
-          //   name: "\u200B",
-          //   value: "\u200B",
-          // },
-          // {
-          //   name: config.prefix + "insult",
-          //   value:
-          //     "Insult as many people as possible (may cause spam in huge servers)",
-          // },
-          {
-            name: config.prefix + "ping",
-            value: "Enable/Disable if users will be pinged when insulted",
-          },
-          {
-            name: config.prefix + "profane",
-            value: "Enable/Disable if bot will post profane memes",
-          }
-        ),
+      embed: helpEmbed,
     });
   }
 });
@@ -331,4 +348,6 @@ client.on("message", async (message) => {
 login(config.dev);
 
 //TODO make admin system
+//TOOD cache system so same insults dont get used and same people dont get pinged
+//TODO force submit system for admins
 //TODO cooldown on insultrs

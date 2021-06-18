@@ -1,10 +1,13 @@
 const { nanoid } = require("nanoid");
 const Discord = require("discord.js");
 
+const cooldowns = require("./cooldown");
 const buttons = require("./buttons");
 const presence = require("./models/presences");
 const servers = require("./models/servers");
 const config = require("../config.json");
+
+const sentCache = {};
 
 const checkServer = async (id) => {
   const server = await servers.findById(id);
@@ -48,7 +51,7 @@ const getReply = async (message, admin) => {
     .sort((a, b) => a.sort - b.sort)
     .map((a) => a.value);
 
-  const sent = false;
+  let sent = false;
   for (const presenceData of presences) {
     if (!admin) {
       const memes = await fetchPresence(
@@ -56,22 +59,28 @@ const getReply = async (message, admin) => {
         message.guild.id
       );
 
-      if (memes[0].length) {
+      if (memes[0].length && !sentCache[presenceData.id]) {
+        sent = true;
+        sentCache[presenceData.id] = Date.now() + 300000; // 5 minutes
+        cooldowns.insultRandom.add(message.author.id);
+        setTimeout(() => {
+          cooldowns.insultRandom.delete(message.author.id);
+        }, 1000);
+
         return message.channel.send(
           `${memes[1] ? `<@${presenceData.id}>` : presenceData.tag}, ${
             memes[0][Math.floor(Math.random() * memes[0].length)]
           }`
         );
-        sent = true;
       }
     }
   }
   if (!sent)
-    return message.channel.send(
-      new Discord.MessageEmbed().setTitle(
-        "error".setDescription("No insults found.")
-      )
-    );
+    return message.channel.send({
+      embed: new Discord.MessageEmbed()
+        .setTitle("Error")
+        .setDescription("No insults found."),
+    });
 };
 
 const fetchPresence = async (name, server) => {
@@ -94,7 +103,7 @@ const verifyPresence = async (name, meme) => {
 
   if (!presenceData) return null;
 
-  for (const meme1 of presenceData.memes) if (meme1 === meme) return null;
+  for (const meme1 of presenceData.memes) if (meme1.meme === meme) return null;
 
   return presenceData;
 };
