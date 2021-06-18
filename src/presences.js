@@ -9,7 +9,19 @@ const config = require("../config.json");
 const checkServer = async (id) => {
   const server = await servers.findById(id);
 
-  return [server.profane, server.ping];
+  return [server.profane, server.ping, server.dm];
+};
+
+const checkDM = async (id, client) => {
+  const serverData = await servers.find({ dm: true });
+
+  for (const server of serverData) {
+    const guild = await client.guilds.cache.get(server._id);
+    const member = await guild.members.cache.get(id);
+
+    // return [!!member, server._id];
+    return false;
+  }
 };
 
 const getReply = async (message, admin) => {
@@ -36,21 +48,30 @@ const getReply = async (message, admin) => {
     .sort((a, b) => a.sort - b.sort)
     .map((a) => a.value);
 
+  const sent = false;
   for (const presenceData of presences) {
     if (!admin) {
       const memes = await fetchPresence(
         presenceData.status.toLowerCase(),
         message.guild.id
       );
-      console.log(memes);
-      if (memes[0].length)
+
+      if (memes[0].length) {
         return message.channel.send(
           `${memes[1] ? `<@${presenceData.id}>` : presenceData.tag}, ${
             memes[0][Math.floor(Math.random() * memes[0].length)]
           }`
         );
+        sent = true;
+      }
     }
   }
+  if (!sent)
+    return message.channel.send(
+      new Discord.MessageEmbed().setTitle(
+        "error".setDescription("No insults found.")
+      )
+    );
 };
 
 const fetchPresence = async (name, server) => {
@@ -165,7 +186,10 @@ module.exports = {
   verifyPresence,
   denyPresence,
   addPresence,
+  fetchPresence,
   approvePresence,
   combineActivities,
   addActivity,
+  checkServer,
+  checkDM,
 };

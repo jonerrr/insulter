@@ -7,6 +7,7 @@ const client = new Discord.Client({
     "GUILD_MESSAGES",
     "GUILD_PRESENCES",
     "GUILD_MESSAGE_REACTIONS",
+    "GUILD_MEMBERS",
   ],
 });
 const log = require("./logging");
@@ -36,7 +37,6 @@ client.on("ready", () => {
     `Logged in as ${client.user.tag}\nMode: ${config.dev ? "DEV" : "PROD"}`
   );
 
-  client.user.setStatus("idle");
   client.user.setPresence({
     status: "idle",
     activity: {
@@ -52,7 +52,9 @@ client.on("guildCreate", async (newGuild) => {
   await guildJoin.join(newGuild.id);
 });
 
-client.on("presenceUpdate", (oldPresence, newPresence) => {
+const userCache = {};
+
+client.on("presenceUpdate", async (oldPresence, newPresence) => {
   const activityArray = presences.combineActivities(newPresence.activities);
 
   if (typeof oldPresence !== "undefined") {
@@ -63,9 +65,29 @@ client.on("presenceUpdate", (oldPresence, newPresence) => {
     if (equals(activityArray, oldActivityArray)) return;
   }
 
-  activityArray.forEach(
-    async (activity) => await presences.addActivity(activity)
-  );
+  // activityArray.forEach(async (activity) => {
+  for (const activity of activityArray) {
+    await presences.addActivity(activity);
+    const shouldDM = await presences.checkDM(newPresence.userID, client);
+    // console.log(userCache[newPresence.userID] > Date.now());
+    console.log(shouldDM);
+    if (
+      shouldDM[0]
+      // &&
+      // (!userCache[newPresence.userID] ||
+      //   userCache[newPresence.userID] < Date.now())
+    ) {
+      const memes = await presences.fetchPresence(activity, shouldDM[1]);
+      if (!memes[0].length) return;
+      userCache[newPresence.userID] = Date.now() + 3600000;
+      console.log(memes);
+      client.users.cache
+        .get(newPresence.userID)
+        .send(memes[0][Math.floor(Math.random() * memes[0].length)]);
+      break;
+    }
+  }
+  // });
 });
 
 client.on("interaction", async (interaction) => {
@@ -167,7 +189,8 @@ client.on("message", async (message) => {
   misc(message, client.user.id);
 
   if (!message.content.startsWith(config.prefix)) return;
-  const commandBody = message.content.slice(config.prefix.length);
+  3;
+  const commandBody = message.content.slice(config.prefix.length).toLowerCase();
   const args = commandBody.split(" ");
   const command = args.shift();
 
@@ -241,6 +264,15 @@ client.on("message", async (message) => {
         ),
     });
 
+  if (command === "dm" && message.author.id === "781599562388471819")
+    message.channel.send({
+      embed: new Discord.MessageEmbed()
+        .setTitle("Success")
+        .setDescription(
+          `**DM Users**: ${await guild.updateDM(message.guild.id)}`
+        ),
+    });
+
   if (command === "insultr" || command === "ir")
     return await presences.getReply(message);
 
@@ -298,6 +330,5 @@ client.on("message", async (message) => {
 
 login(config.dev);
 
-//TODO make dm insults admin only
 //TODO make admin system
 //TODO cooldown on insultrs

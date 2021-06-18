@@ -16,4 +16,12 @@ const updateProfane = async (id) => {
   return !server.profane;
 };
 
-module.exports = { updatePing, updateProfane };
+const updateDM = async (id) => {
+  const server = await servers.findById(id);
+
+  await servers.updateOne({ _id: id }, { dm: !server.dm });
+
+  return !server.dm;
+};
+
+module.exports = { updatePing, updateProfane, updateDM };
