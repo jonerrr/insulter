@@ -70,7 +70,7 @@ client.on("presenceUpdate", async (oldPresence, newPresence) => {
     await presences.addActivity(activity);
     const shouldDM = await presences.checkDM(newPresence.userID, client);
     // console.log(userCache[newPresence.userID] > Date.now());
-    console.log(shouldDM);
+    // console.log(shouldDM);
     if (
       shouldDM[0]
       // &&
@@ -286,7 +286,49 @@ client.on("message", async (message) => {
   )
     return await presences.getReply(message);
 
-  if (command === "insult") presences.getReply(message, true);
+  if (
+    (command === "insult" || command === "i") &&
+    !cooldown.insultRandom.has(message.author.id)
+  ) {
+    if (message.mentions.users.first()) {
+      message.guild.presences.cache.forEach(async (p) => {
+        if (p.userID === message.mentions.users.first().id) {
+          for (const activity of p.activities
+            .map((a) => ({ sort: Math.random(), value: a }))
+            .sort((a, b) => a.sort - b.sort)
+            .map((a) => a.value)) {
+            const meme = await presences.fetchPresence(
+              activity.name.toLowerCase(),
+              message.guild.id
+            );
+            if (!meme[0].length) return;
+
+            cooldown.insultRandom.add(message.author.id);
+            setTimeout(() => {
+              cooldown.insultRandom.delete(message.author.id);
+            }, 500);
+
+            return message.channel.send({
+              content: meme[0][Math.floor(Math.random() * meme[0].length)],
+            });
+          }
+        }
+      });
+    }
+
+    const args2 = commandBody.split(" ");
+    args2.shift();
+    if (args2.join(" ")) {
+      const memes = await presences.fetchPresence(
+        args2.join(" ").toLowerCase(),
+        message.guild.id
+      );
+      if (memes[0].length)
+        return message.channel.send(
+          memes[0][Math.floor(Math.random() * memes[0].length)]
+        );
+    }
+  }
 
   if (command === "help") {
     const helpEmbed = new Discord.MessageEmbed()
@@ -300,7 +342,13 @@ client.on("message", async (message) => {
           value: "Insult a random person",
         },
         {
-          name: config.prefix + "submit `<Game>`; `<Meme URL>`",
+          name:
+            `${config.prefix}i || ${config.prefix}insult ` +
+            "`Game/<@Mention>`",
+          value: "Insult a specific person or game",
+        },
+        {
+          name: config.prefix + "submit `Game`; `Meme URL`",
           value: "Suggest an insult",
         },
         // {
