@@ -331,10 +331,18 @@ client.on("message", async (message) => {
   }
 
   if (command === "help") {
+    const msg = await message.channel.send({
+      embed: new Discord.MessageEmbed().setTitle("Loading"),
+    });
+
     const helpEmbed = new Discord.MessageEmbed()
       .setTitle("Help")
       .setDescription(
-        `**Servers**: ${client.guilds.cache.size}\n[Invite](https://discord.com/oauth2/authorize?client_id=${client.user.id}&permissions=0&scope=bot)\n\n=====Commands=====`
+        `**Servers**: ${client.guilds.cache.size}\n**Ping**: ${
+          msg.createdTimestamp - message.createdTimestamp
+        }ms\n[Invite](https://discord.com/oauth2/authorize?client_id=${
+          client.user.id
+        }&permissions=0&scope=bot)\n\n=====Commands=====`
       )
       .addFields(
         {
@@ -387,7 +395,7 @@ client.on("message", async (message) => {
         "Enable/Disable if bot will DM people on presence change with insults"
       );
 
-    return message.channel.send({
+    return await msg.edit({
       embed: helpEmbed,
     });
   }
