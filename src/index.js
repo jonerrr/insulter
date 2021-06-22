@@ -66,28 +66,32 @@ client.on("presenceUpdate", async (oldPresence, newPresence) => {
     if (equals(activityArray, oldActivityArray)) return;
   }
 
-  for (const activity of activityArray) {
-    await presences.addActivity(activity);
-    const shouldDM = await presences.checkDM(newPresence.userID, client);
-    if (
-      shouldDM[0] &&
-      (!userCache[newPresence.userID] ||
-        userCache[newPresence.userID] < Date.now())
-    ) {
-      userCache[newPresence.userID] = Date.now() + 3600000;
-      const memes = await presences.fetchPresence(activity, shouldDM[1]);
-      if (!memes[0].length) return;
-      console.log(newPresence.userID, activity);
-      const userData = await user.checkUser(newPresence.userID);
-      console.log(userData);
-      // if (!userData.dm) return;
+  try {
+    for (const activity of activityArray) {
+      await presences.addActivity(activity);
+      const shouldDM = await presences.checkDM(newPresence.userID, client);
+      if (
+        shouldDM[0] &&
+        (!userCache[newPresence.userID] ||
+          userCache[newPresence.userID] < Date.now())
+      ) {
+        userCache[newPresence.userID] = Date.now() + 3600000;
+        const memes = await presences.fetchPresence(activity, shouldDM[1]);
+        if (!memes[0].length) return;
+        console.log(newPresence.userID, activity);
+        const userData = await user.checkUser(newPresence.userID);
+        console.log(userData);
+        // if (!userData.dm) return;
 
-      client.users.cache.get(newPresence.userID).send({
-        content: memes[0][Math.floor(Math.random() * memes[0].length)],
-        // components: [buttons.dm(newPresence.userID)],
-      });
-      break;
+        client.users.cache.get(newPresence.userID).send({
+          content: memes[0][Math.floor(Math.random() * memes[0].length)],
+          // components: [buttons.dm(newPresence.userID)],
+        });
+        break;
+      }
     }
+  } catch (e) {
+    log.error(e);
   }
 });
 
