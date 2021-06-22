@@ -65,4 +65,21 @@ const review2 = (chose) => {
   );
 };
 
-module.exports = { confirm, confirm2, review, review2 };
+const dm = (id) => {
+  return (
+    new MessageActionRow().addComponents(
+      new MessageButton()
+        .setCustomID(`dm ${id}`)
+        .setLabel("Continue DMs")
+        .setStyle("SUCCESS")
+    ),
+    new MessageActionRow().addComponents(
+      new MessageButton()
+        .setCustomID(`ddm ${id}`)
+        .setLabel("Stop DMs")
+        .setStyle("DANGER")
+    )
+  );
+};
+
+module.exports = { confirm, confirm2, review, review2, dm };

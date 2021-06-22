@@ -3,9 +3,9 @@ const Discord = require("discord.js");
 
 const cooldowns = require("./cooldown");
 const buttons = require("./buttons");
-const presence = require("./models/presences");
-const servers = require("./models/servers");
-const config = require("../config.json");
+const presence = require("../models/presences");
+const servers = require("../models/servers");
+const config = require("../../config.json");
 
 const sentCache = {};
 

@@ -1,4 +1,4 @@
-const servers = require("./models/servers");
+const servers = require("../models/servers");
 
 const updatePing = async (id) => {
   const server = await servers.findById(id);

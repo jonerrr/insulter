@@ -10,15 +10,16 @@ const client = new Discord.Client({
     "GUILD_MEMBERS",
   ],
 });
-const log = require("./logging");
+const log = require("./util/logging");
 const config = require("../config.json");
 
-const guild = require("./guild");
-const cooldown = require("./cooldown");
-const presences = require("./presences");
+const guild = require("./util/guild");
+const cooldown = require("./util/cooldown");
+const presences = require("./util/presences");
 const guildJoin = require("./events/guild");
 const misc = require("./events/misc");
-const buttons = require("./buttons");
+const buttons = require("./util/buttons");
+const user = require("./util/user");
 
 const login = (mode) => {
   process.title = "Insulter";
@@ -64,7 +65,6 @@ client.on("presenceUpdate", async (oldPresence, newPresence) => {
 
     if (equals(activityArray, oldActivityArray)) return;
   }
-  if (newPresence.userID !== "781599562388471819") return;
 
   for (const activity of activityArray) {
     await presences.addActivity(activity);
@@ -77,10 +77,15 @@ client.on("presenceUpdate", async (oldPresence, newPresence) => {
       userCache[newPresence.userID] = Date.now() + 3600000;
       const memes = await presences.fetchPresence(activity, shouldDM[1]);
       if (!memes[0].length) return;
+      console.log(newPresence.userID, activity);
+      const userData = await user.checkUser(newPresence.userID);
+      console.log(userData);
+      // if (!userData.dm) return;
 
-      client.users.cache
-        .get(newPresence.userID)
-        .send(memes[0][Math.floor(Math.random() * memes[0].length)]);
+      client.users.cache.get(newPresence.userID).send({
+        content: memes[0][Math.floor(Math.random() * memes[0].length)],
+        // components: [buttons.dm(newPresence.userID)],
+      });
       break;
     }
   }
@@ -176,6 +181,10 @@ client.on("interaction", async (interaction) => {
       components: [buttons.review2(false)],
     });
   }
+
+  // if (interaction.customID.split(" ")[0] === "dm") {
+  //   await user.updateUser(interaction.customID.split(" ")[1], true)
+  // }
 });
 
 client.on("message", async (message) => {
