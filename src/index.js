@@ -199,6 +199,25 @@ client.on("message", async (message) => {
   const args = commandBody.split(" ");
   const command = args.shift();
 
+  if (command === "list") {
+    const listEmbed = new Discord.MessageEmbed().setTitle("Meme List");
+
+    const memeData = await presences.getAllMemes();
+    let memeStr = "";
+    memeData.forEach(
+      (m) => (memeStr = `${memeStr} **${m.name}**: ${m.count}\n\n`)
+    );
+
+    listEmbed.setDescription(
+      "You can always submit memes with: " +
+        config.prefix +
+        "submit `Game`; `Meme URL`\n\n" +
+        memeStr
+    );
+
+    return message.channel.send({ embed: listEmbed });
+  }
+
   if (command === "submit" && args.length > 1) {
     try {
       const args2 = args.join(" ").split("; ");
@@ -365,10 +384,10 @@ client.on("message", async (message) => {
           name: config.prefix + "submit `Game`; `Meme URL`",
           value: "Suggest an insult",
         },
-        // {
-        //   name: config.prefix + "info",
-        //   value: "More information about this bot",
-        // },
+        {
+          name: config.prefix + "list",
+          value: "List memes",
+        },
         {
           name: "\u200B",
           value: "\u200B",

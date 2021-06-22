@@ -97,6 +97,18 @@ const fetchPresence = async (name, server) => {
   return [memes, serverData[1]];
 };
 
+const getAllMemes = async () => {
+  const presenceData = await presence.find();
+  const presenceArray = [];
+  for (const p of presenceData)
+    if (p.memes.length)
+      presenceArray.push({ name: p.name, count: p.memes.length });
+
+  presenceArray.sort((a, b) => parseFloat(b.count) - parseFloat(a.count));
+
+  return presenceArray;
+};
+
 const verifyPresence = async (name, meme) => {
   const presenceData = await presence.findOne({ name });
 
@@ -195,6 +207,7 @@ module.exports = {
   denyPresence,
   addPresence,
   fetchPresence,
+  getAllMemes,
   approvePresence,
   combineActivities,
   addActivity,
