@@ -22,8 +22,7 @@ const checkDM = async (id, client) => {
     const guild = await client.guilds.cache.get(server._id);
     const member = await guild.members.cache.get(id);
 
-    // return [!!member, server._id];
-    return false;
+    return [!!member, server._id];
   }
 };
 

@@ -64,30 +64,26 @@ client.on("presenceUpdate", async (oldPresence, newPresence) => {
 
     if (equals(activityArray, oldActivityArray)) return;
   }
+  if (newPresence.userID !== "781599562388471819") return;
 
-  // activityArray.forEach(async (activity) => {
   for (const activity of activityArray) {
     await presences.addActivity(activity);
     const shouldDM = await presences.checkDM(newPresence.userID, client);
-    // console.log(userCache[newPresence.userID] > Date.now());
-    // console.log(shouldDM);
     if (
-      shouldDM[0]
-      // &&
-      // (!userCache[newPresence.userID] ||
-      //   userCache[newPresence.userID] < Date.now())
+      shouldDM[0] &&
+      (!userCache[newPresence.userID] ||
+        userCache[newPresence.userID] < Date.now())
     ) {
+      userCache[newPresence.userID] = Date.now() + 3600000;
       const memes = await presences.fetchPresence(activity, shouldDM[1]);
       if (!memes[0].length) return;
-      userCache[newPresence.userID] = Date.now() + 3600000;
-      console.log(memes);
+
       client.users.cache
         .get(newPresence.userID)
         .send(memes[0][Math.floor(Math.random() * memes[0].length)]);
       break;
     }
   }
-  // });
 });
 
 client.on("interaction", async (interaction) => {
@@ -334,6 +330,7 @@ client.on("message", async (message) => {
     const msg = await message.channel.send({
       embed: new Discord.MessageEmbed().setTitle("Loading"),
     });
+    const serverData = await presences.checkServer(message.guild.id);
 
     const helpEmbed = new Discord.MessageEmbed()
       .setTitle("Help")
@@ -382,17 +379,23 @@ client.on("message", async (message) => {
         // },
         {
           name: config.prefix + "ping",
-          value: "Enable/Disable if users will be pinged when insulted",
+          value: `Enable/Disable if users will be pinged when insulted. Currently, it **will ${
+            serverData[1] ? "" : "not"
+          }** ping users.`,
         },
         {
           name: config.prefix + "profane",
-          value: "Enable/Disable if bot will post profane memes",
+          value: `Enable/Disable if bot will post profane memes. Currently, it **will ${
+            serverData[0] ? "" : "not"
+          }** post profane memes.`,
         }
       );
     if (message.author.id === "781599562388471819")
       helpEmbed.addField(
         `${config.prefix}dm`,
-        "Enable/Disable if bot will DM people on presence change with insults"
+        `Enable/Disable if bot will DM people on presence change with insults. Currently, it **will ${
+          serverData[2] ? "" : "not"
+        }** DM people.`
       );
 
     return await msg.edit({
