@@ -56,17 +56,17 @@ client.on("guildCreate", async (newGuild) => {
 const userCache = {};
 
 client.on("presenceUpdate", async (oldPresence, newPresence) => {
-  const activityArray = presences.combineActivities(newPresence.activities);
-
-  if (typeof oldPresence !== "undefined") {
-    const oldActivityArray = presences.combineActivities(
-      oldPresence.activities
-    );
-
-    if (equals(activityArray, oldActivityArray)) return;
-  }
-
   try {
+    const activityArray = presences.combineActivities(newPresence.activities);
+
+    if (typeof oldPresence !== "undefined") {
+      const oldActivityArray = presences.combineActivities(
+        oldPresence.activities
+      );
+
+      if (equals(activityArray, oldActivityArray)) return;
+    }
+
     for (const activity of activityArray) {
       await presences.addActivity(activity);
       const shouldDM = await presences.checkDM(newPresence.userID, client);
@@ -101,91 +101,93 @@ client.on("interaction", async (interaction) => {
     interaction.componentType !== "BUTTON"
   )
     return;
+  try {
+    if (interaction.customID.split(" ")[0] === "pg") {
+      return (await presences.addPresence(
+        interaction.message.embeds[0].description.slice(10),
+        false,
+        interaction.customID.slice(3),
+        interaction.message.embeds[0].image.url,
+        client
+      ))
+        ? interaction.update({
+            embeds: [new Discord.MessageEmbed().setTitle("Meme Submitted")],
+            components: [buttons.confirm2(interaction.customID.split(" ")[0])],
+          })
+        : interaction.update({
+            embeds: [
+              new Discord.MessageEmbed()
+                .setTitle("Error")
+                .setDescription("This meme has already been submitted."),
+            ],
+            components: [buttons.confirm2(interaction.customID.split(" ")[0])],
+          });
+    }
 
-  if (interaction.customID.split(" ")[0] === "pg") {
-    return (await presences.addPresence(
-      interaction.message.embeds[0].description.slice(10),
-      false,
-      interaction.customID.slice(3),
-      interaction.message.embeds[0].image.url,
-      client
-    ))
-      ? interaction.update({
-          embeds: [new Discord.MessageEmbed().setTitle("Meme Submitted")],
-          components: [buttons.confirm2(interaction.customID.split(" ")[0])],
-        })
-      : interaction.update({
-          embeds: [
-            new Discord.MessageEmbed()
-              .setTitle("Error")
-              .setDescription("This meme has already been submitted."),
-          ],
-          components: [buttons.confirm2(interaction.customID.split(" ")[0])],
-        });
+    if (interaction.customID.split(" ")[0] === "pg13") {
+      return (await presences.addPresence(
+        interaction.message.embeds[0].description.slice(10),
+        true,
+        interaction.customID.slice(5),
+        interaction.message.embeds[0].image.url,
+        client
+      ))
+        ? interaction.update({
+            embeds: [new Discord.MessageEmbed().setTitle("Meme Submitted")],
+            components: [buttons.confirm2(interaction.customID.split(" ")[0])],
+          })
+        : interaction.update({
+            embeds: [
+              new Discord.MessageEmbed()
+                .setTitle("Error")
+                .setDescription("This meme has already been submitted."),
+            ],
+            components: [buttons.confirm2(interaction.customID.split(" ")[0])],
+          });
+    }
+
+    if (interaction.customID.split(" ")[0] === "cancel") {
+      interaction.update({
+        embeds: [new Discord.MessageEmbed().setTitle("Submission Canceled")],
+        components: [buttons.confirm2(interaction.customID.split(" ")[0])],
+      });
+    }
+
+    if (interaction.customID.split(" ")[0] === "confirm") {
+      const submitInfo = interaction.message.embeds[0].description.split("\n");
+      await presences.approvePresence(
+        submitInfo[0].slice(10),
+        interaction.customID.split(" ")[1]
+      );
+
+      return interaction.update({
+        embeds: [
+          new Discord.MessageEmbed()
+            .setTitle("Submission Confirmed")
+            .setImage(interaction.message.embeds[0].image.url),
+        ],
+        components: [buttons.review2(true)],
+      });
+    }
+
+    if (interaction.customID.split(" ")[0] === "deny") {
+      await presences.denyPresence(
+        interaction.message.embeds[0].description.slice(10, 18),
+        interaction.customID.split(" ")[1]
+      );
+
+      return interaction.update({
+        embeds: [
+          new Discord.MessageEmbed()
+            .setTitle("Submission Denied")
+            .setImage(interaction.message.embeds[0].image.url),
+        ],
+        components: [buttons.review2(false)],
+      });
+    }
+  } catch (e) {
+    console.log(e);
   }
-
-  if (interaction.customID.split(" ")[0] === "pg13") {
-    return (await presences.addPresence(
-      interaction.message.embeds[0].description.slice(10),
-      true,
-      interaction.customID.slice(5),
-      interaction.message.embeds[0].image.url,
-      client
-    ))
-      ? interaction.update({
-          embeds: [new Discord.MessageEmbed().setTitle("Meme Submitted")],
-          components: [buttons.confirm2(interaction.customID.split(" ")[0])],
-        })
-      : interaction.update({
-          embeds: [
-            new Discord.MessageEmbed()
-              .setTitle("Error")
-              .setDescription("This meme has already been submitted."),
-          ],
-          components: [buttons.confirm2(interaction.customID.split(" ")[0])],
-        });
-  }
-
-  if (interaction.customID.split(" ")[0] === "cancel") {
-    interaction.update({
-      embeds: [new Discord.MessageEmbed().setTitle("Submission Canceled")],
-      components: [buttons.confirm2(interaction.customID.split(" ")[0])],
-    });
-  }
-
-  if (interaction.customID.split(" ")[0] === "confirm") {
-    const submitInfo = interaction.message.embeds[0].description.split("\n");
-    await presences.approvePresence(
-      submitInfo[0].slice(10),
-      interaction.customID.split(" ")[1]
-    );
-
-    return interaction.update({
-      embeds: [
-        new Discord.MessageEmbed()
-          .setTitle("Submission Confirmed")
-          .setImage(interaction.message.embeds[0].image.url),
-      ],
-      components: [buttons.review2(true)],
-    });
-  }
-
-  if (interaction.customID.split(" ")[0] === "deny") {
-    await presences.denyPresence(
-      interaction.message.embeds[0].description.slice(10, 18),
-      interaction.customID.split(" ")[1]
-    );
-
-    return interaction.update({
-      embeds: [
-        new Discord.MessageEmbed()
-          .setTitle("Submission Denied")
-          .setImage(interaction.message.embeds[0].image.url),
-      ],
-      components: [buttons.review2(false)],
-    });
-  }
-
   // if (interaction.customID.split(" ")[0] === "dm") {
   //   await user.updateUser(interaction.customID.split(" ")[1], true)
   // }
