@@ -19,7 +19,7 @@ const rest = new REST({ version: "9" }).setToken(config.token);
 client.on("ready", async () => {
   if ((config.mode === "dev" && !config.guild) || config.guild.length < 5) {
     console.log(
-      `Missing guild for slash commands, currently set to ${config.guild}`
+      `Missing guild for slash commands, currently set to: ${config.guild}`
     );
     process.exit(1);
   }
@@ -46,12 +46,11 @@ client.on("presenceUpdate", (oldP: Presence, newP: Presence) =>
   addPresence(oldP, newP)
 );
 
-client.on("interactionUpdate", (interaction: BaseCommandInteraction) => {
+client.on("interactionCreate", (interaction: BaseCommandInteraction) => {
   if (interaction.isCommand())
     parseCommand(interaction, client.guilds.cache.size);
 
-  if (interaction.isButton())
-    parseButton(interaction);
+  if (interaction.isButton()) parseButton(interaction);
 });
 
 client.login(config.token);

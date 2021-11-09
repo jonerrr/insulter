@@ -1,7 +1,10 @@
 import { MessageEmbed } from "discord.js";
 
-export const info = (ping: number, servers: number): MessageEmbed => {
-  return new MessageEmbed()
+export const memeCreated = (url: string): MessageEmbed =>
+  new MessageEmbed().setTitle("Meme submitted").setColor("GREEN").setImage(url);
+
+export const info = (ping: number, servers: number): MessageEmbed =>
+  new MessageEmbed()
     .setTitle("Error")
     .setColor("DARK_BUT_NOT_BLACK")
     .setFields([
@@ -17,11 +20,9 @@ export const info = (ping: number, servers: number): MessageEmbed => {
       },
     ])
     .setDescription("Insulter is a very awesome Discord bot that insults you!");
-};
 
-export const error = (error: string): MessageEmbed => {
-  return new MessageEmbed()
+export const error = (error: string): MessageEmbed =>
+  new MessageEmbed()
     .setTitle("Error")
     .setColor("DARK_RED")
     .setDescription(error);
-};

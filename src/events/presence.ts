@@ -8,7 +8,6 @@ import _ from "lodash";
  * @param Presence New presence of the user.
  */
 export const addPresence = (oldP: Presence, newP: Presence) => {
-  console.log(oldP);
   const parsed = parseActivity(
     oldP.activities ? oldP.activities : [],
     newP.activities
