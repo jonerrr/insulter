@@ -1,20 +1,22 @@
 {
-  "name": "insultbot",
+  "dependencies": {
+    "@discordjs/rest": "^0.1.0-canary.0",
+    "discord-api-types": "^0.24.0",
+    "discord.js": "^13.3.1",
+    "lodash": "^4.17.21",
+    "mongoose": "^6.0.12"
+  },
+  "name": "insulter-rewrite",
   "version": "1.0.0",
-  "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node src/index"
+    "start": "ts-node-dev src/."
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "dependencies": {
-    "chalk": "^4.1.1",
-    "discord-buttons": "^2.4.1",
-    "discord.js": "^13.0.0-dev.c6aeebb18d6b969f7c8bdb1b719883d4384dd03e",
-    "mongoose": "^5.12.13",
-    "nanoid": "^3.1.23",
-    "url-regex-safe": "^2.0.2"
+  "description": "",
+  "devDependencies": {
+    "@types/lodash": "^4.14.176"
   }
 }

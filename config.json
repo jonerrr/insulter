@@ -1,8 +1,6 @@
 {
-  "dev": false,
   "token": "",
-  "devToken": "",
-  "channel": "",
-  "prefix": ".",
-  "uri": ""
+  "uri": "",
+  "guild": "",
+  "mode": "dev"
 }
